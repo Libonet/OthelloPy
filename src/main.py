@@ -76,20 +76,17 @@ def crearTablero(filas: int=8, columnas: str="ABCDEFGH") -> dict[str, tuple[(str
 
   return tablero
 
-def mostrarTablero(tablero: dict[str, tuple[(str|None, list[str])]], filas: int = 8, columnas: str = "ABCDEFGH") -> None:
+def mostrarTablero(tablero: dict[str, tuple[(str|None, list[str])]], filas: int = 8, columnas: str = "ABCDEFGH") -> None: # TODO: mostrar correctamente el tablero
   tableroFormateado = formatearTablero(tablero, filas, columnas)
 
   print("Tablero:")
-  for fila in tableroFormateado:
-    output = ""
+  print("  |A|B|C|D|E|F|G|H|")
+  print("--------------------")
+  for indice, fila in enumerate(tableroFormateado):
+    print(f"{indice+1} |", end="")
     for casilla in fila:
-      if casilla == "":
-        output += " N "
-      if casilla == "⚫":
-        output += "⚫"
-      if casilla == "⚪":
-        output += "⚪"
-    print(output)
+      print(casilla, end="|")
+    print("")
 
 def formatearTablero(tablero: dict[str, tuple[(str|None, list[str])]], filas: int = 8, columnas: str = "ABCDEFGH") -> list[list[str]]:
     output = []
@@ -97,11 +94,11 @@ def formatearTablero(tablero: dict[str, tuple[(str|None, list[str])]], filas: in
       fila = []
       for j in range(len(columnas)):
         if tablero[columnas[j]+str(i)][0] == "N":
-          fila += "⚫"
+          fila += "N"
         elif tablero[columnas[j]+str(i)][0] == "B":
-          fila += "⚪"
+          fila += "B"
         else:
-          fila += ""
+          fila += " "
       output.append(fila)
     return output
 
@@ -153,9 +150,14 @@ def realizarJugada(tablero: dict[str, tuple[(str|None, list[str])]], casilla: st
 # Siempre: quién, tablero en su estado final
 # Si hubo un error: posicion de jugada, número, tablero antes de cometer el error
 # Jugada podría ser una tupla? (nº jugada, casilla)
-def terminarPartida(jugadorActual: str, tablero: dict[str, tuple[(str|None, list[str])]], 
+def terminarPartida(jugadorActual: str, tablero: dict[str, tuple[(str|None, list[str])]], jugadorA: tuple[str, str], jugadorB: tuple[str, str], 
     jugadaIncorrecta: tuple[(int, str)] | None = None) -> None:
   """ Imprime el final de una partida. """
+
+  for color, lista in tablero:
+    if color=="None":
+      print("La partida no fue terminada.")
+      return
   if jugadorActual=="B":
     fichas="Blancas"
   else:
@@ -163,7 +165,32 @@ def terminarPartida(jugadorActual: str, tablero: dict[str, tuple[(str|None, list
   if jugadaIncorrecta != None:
     print(f"En la jugada nº{jugadaIncorrecta[0]}, posición {jugadaIncorrecta[1]} el jugador de las fichas {fichas} realizó un movimiento inválido")
   else:
-    print(f"El jugador ganador son las {fichas}!!!")
+    determinarGanador(tablero, jugadorA, jugadorB)
+
+def determinarGanador(tablero: dict[str, tuple[(str|None, list[str])]], jugadorA: tuple[str, str], jugadorB: tuple[str, str]):
+  cantBlancas = 0
+  cantNegras = 0
+  for color, lista in tablero:
+    if color == "B":
+      cantBlancas+=1
+    if color == "N":
+      cantNegras+=1
+  print(cantBlancas)
+
+  if jugadorA[1]=="B":
+    mostrarGanador(jugadorA, jugadorB, cantBlancas, cantNegras)
+  else:
+    mostrarGanador(jugadorB, jugadorA, cantBlancas, cantNegras)
+
+def mostrarGanador(blancas: tuple[str, str], negras: tuple[str, str], cantBlancas: int, cantNegras: int):
+    if cantBlancas>cantNegras:
+      print(f"Ganó {blancas[0]}, con {cantBlancas} puntos")
+    elif cantNegras>cantBlancas:
+      print(f"Ganó {negras[0]}, con {cantNegras} puntos")
+    else:
+      print(f"La partida terminó en empate.")
+
+
 
 def leerPartidaDeOthello(filas: int = 8, columnas: str = "ABCDEFGH") -> None:
   """Lee una partida de Othello guardada en un archivo .txt"""
@@ -200,7 +227,7 @@ def leerPartidaDeOthello(filas: int = 8, columnas: str = "ABCDEFGH") -> None:
   for jugada in range(3, len(partida)):
     valida, adyacentes = validarJugada(tablero, partida[jugada], jugadorActual)
     if not valida:
-      terminarPartida(jugadorActual, tablero, (jugada-2, partida[jugada]))
+      terminarPartida(jugadorActual, tablero, jugadorA, jugadorB, (jugada-2, partida[jugada]))
       mostrarTablero(tablero, filas, columnas)
       return
     if valida:
@@ -212,7 +239,7 @@ def leerPartidaDeOthello(filas: int = 8, columnas: str = "ABCDEFGH") -> None:
     elif jugadorActual == "N":
       jugadorActual = "B"
   
-  terminarPartida(jugadorActual, tablero)
+  terminarPartida(jugadorActual, tablero, jugadorA, jugadorB)
   mostrarTablero(tablero, filas, columnas)
 
 if __name__ == "__main__":
