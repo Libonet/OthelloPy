@@ -4,3 +4,4 @@ venv
 .pytest_cache
 prueba.py
 prueba.txt
+__pycache__
