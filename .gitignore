@@ -3,4 +3,4 @@ venv
 .vscode
 .pytest_cache
 prueba.py
-partidas/prueba.txt
+prueba.txt
