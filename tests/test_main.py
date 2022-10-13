@@ -1,8 +1,10 @@
-from src.main import obtener_adyacentes, crear_tablero, validar_jugada
+""" Este módulo está destinado a los tests de funciones de main.py """
+from src.main import obtener_adyacentes, crear_tablero, posibles_jugadas, recorrer_adyacentes
 
 
 class TestMainFunctions:
-    tableroInicial = {
+    """Testeo de funciones que usan el tablero inicial"""
+    tableroInicial: dict[str, tuple[str | None, list[str]]] = {
         "A1": (None, obtener_adyacentes("A1")),
         "B1": (None, obtener_adyacentes("B1")),
         "C1": (None, obtener_adyacentes("C1")),
@@ -69,7 +71,8 @@ class TestMainFunctions:
         "H8": (None, obtener_adyacentes("H8")),
     }
 
-    def test_obtenerAdyacentes(self):
+    def test_obtener_adyacentes(self):
+        """obtener_adyacentes devuelve una lista de casillas adyacentes a la indicada"""
         posicion1 = "C4"
         posicion2 = "A5"
         posicion3 = "H8"
@@ -83,7 +86,9 @@ class TestMainFunctions:
         assert obtener_adyacentes(posicion4) == [
             None, None, None, "C1", "E1", "C2", "D2", "E2"]
 
-    def test_crearTablero(self):
+    def test_crear_tablero(self):
+        """crear_tablero devuelve un diccionario con todas las casillas como llave,
+        guardando en cada una una tupla de su color y una lista de casillas adyacentes"""
         assert crear_tablero(8, "ABCDEFGH") == self.tableroInicial
         self.tableroInicial["D3"] = ("N", obtener_adyacentes("D3"))
         assert crear_tablero(8, "ABCDEFGH") != self.tableroInicial
@@ -100,6 +105,17 @@ class TestMainFunctions:
             "C3": (None,  obtener_adyacentes("C3", 3, "ABC")),
         }
 
-    def test_validarJugada(self):
-        assert validar_jugada(self.tableroInicial, "D3", "N") == (True, [1])
-        assert validar_jugada(self.tableroInicial, "A1", "B") == (False, [])
+    def test_posibles_jugadas(self):
+        """posibles_jugadas checkea qué casillas son válidas para una jugada,
+        y guarda en un diccionario como llave la casilla, y valor la lista
+        de direcciones que modificar"""
+        assert posibles_jugadas(self.tableroInicial, "B") == {
+            "E3":[6],
+            "F4":[3],
+            "C5":[4],
+            "D6":[1],
+            }
+
+    def test_recorrer_adyacentes(self):
+        """Testeamos el recorrido de adyacentes para validar jugada"""
+        assert recorrer_adyacentes(self.tableroInicial, 6, "D4", "N") is True
