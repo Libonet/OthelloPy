@@ -106,7 +106,10 @@ def recorrerAdyacentes(tablero: dict[str, tuple[(str | None, list[str])]], posic
   datosCasillaActual = tablero[casilla]
   listaDeAdyacentes = datosCasillaActual[1]
   casillaAdyacente = listaDeAdyacentes[posicion]
-  colorDeAdyacente, listaDeAdyacentes = tablero[casillaAdyacente]
+  if casillaAdyacente!=None:
+    colorDeAdyacente, adyacentes = tablero[casillaAdyacente]
+  else:
+    colorDeAdyacente = None
   if colorDeAdyacente==jugadorActual:
     return True
   elif colorDeAdyacente==None:
@@ -119,11 +122,13 @@ def validarJugada(tablero: dict[str, tuple[(str | None, list[str])]], casilla: s
     return (False, [])
 
   listaDeAdyacentes = tablero[casilla][1]
-  colorDeAdyacentes = [tablero[adyacente][0] for adyacente in listaDeAdyacentes]
+  colorDeAdyacentes = [tablero[adyacente][0] if adyacente!=None else None for adyacente in listaDeAdyacentes]
   if (jugadorActual == "B" and "N" not in colorDeAdyacentes) or (jugadorActual == "N" and "B" not in colorDeAdyacentes):
     return (False, [])
   
   for posicion, adyacente in enumerate(listaDeAdyacentes):
+    if colorDeAdyacentes[posicion] == None or colorDeAdyacentes[posicion] == jugadorActual:
+      continue
     valida = recorrerAdyacentes(tablero, posicion, adyacente, jugadorActual)
     if valida:
       validos.append(posicion)
@@ -137,7 +142,10 @@ def realizarJugada(tablero: dict[str, tuple[(str|None, list[str])]], casilla: st
   casillaActual = tablero.get(casilla, (None, []))
   listaDeAdyacentes = casillaActual[1]
   casillaAdyacente = listaDeAdyacentes[posicion]
-  colorDeAdyacente, listaDeAdyacentes = tablero[casillaAdyacente] # este es el adyacente a la posicion que estamos checkeando actualmente
+  if casillaAdyacente != None:
+    colorDeAdyacente, dobleAdyacentes = tablero[casillaAdyacente] # este es el adyacente a la posicion que estamos checkeando actualmente
+  else:
+    colorDeAdyacente = jugadorActual
   tablero[casilla] = (jugadorActual, listaDeAdyacentes)
   if colorDeAdyacente==jugadorActual:
     return
@@ -154,23 +162,29 @@ def terminarPartida(jugadorActual: str, tablero: dict[str, tuple[(str|None, list
     jugadaIncorrecta: tuple[(int, str)] | None = None) -> None:
   """ Imprime el final de una partida. """
 
-  for color, lista in tablero:
-    if color=="None":
-      print("La partida no fue terminada.")
-      return
   if jugadorActual=="B":
     fichas="Blancas"
   else:
     fichas="Negras"
   if jugadaIncorrecta != None:
     print(f"En la jugada nº{jugadaIncorrecta[0]}, posición {jugadaIncorrecta[1]} el jugador de las fichas {fichas} realizó un movimiento inválido")
-  else:
+    return
+  for clave in tablero:
+    color = tablero[clave][0]
+    if color==None:
+      print("La partida no fue terminada.")
+      return
+  if jugadaIncorrecta == None:
     determinarGanador(tablero, jugadorA, jugadorB)
 
 def determinarGanador(tablero: dict[str, tuple[(str|None, list[str])]], jugadorA: tuple[str, str], jugadorB: tuple[str, str]):
   cantBlancas = 0
   cantNegras = 0
-  for color, lista in tablero:
+  for clave in tablero:
+    color = tablero[clave][0]
+    print(color)
+    print(cantBlancas)
+    print(cantNegras)
     if color == "B":
       cantBlancas+=1
     if color == "N":
@@ -225,6 +239,8 @@ def leerPartidaDeOthello(filas: int = 8, columnas: str = "ABCDEFGH") -> None:
   valida = False
   # inicia el loop de la partida (recorre las jugadas)
   for jugada in range(3, len(partida)):
+    # para debugging:
+    mostrarTablero(tablero, filas, columnas)
     valida, adyacentes = validarJugada(tablero, partida[jugada], jugadorActual)
     if not valida:
       terminarPartida(jugadorActual, tablero, jugadorA, jugadorB, (jugada-2, partida[jugada]))
