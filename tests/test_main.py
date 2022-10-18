@@ -1,5 +1,5 @@
 """ Este módulo está destinado a los tests de funciones de main.py """
-from src.main import obtener_adyacentes, obtener_disposicion_inicial, posibles_jugadas, recorrer_adyacentes
+from src.main import obtener_adyacentes, obtener_disposicion_inicial, posibles_jugadas, validar_linea
 
 
 class TestMainFunctions:
@@ -120,4 +120,4 @@ class TestMainFunctions:
 
     def test_recorrer_adyacentes(self):
         """Testeamos el recorrido de adyacentes para validar jugada"""
-        assert recorrer_adyacentes(self.tableroInicial, 6, "D4", "N") is True
+        assert validar_linea(self.tableroInicial, 6, "D4", "N") is True
