@@ -112,12 +112,13 @@ def mostrar_tablero(tablero_de_colores: dict[str, str | None], filas: int = 8, \
 
     print("Tablero:")
     print("  | A | B | C | D | E | F | G | H |")
-    print("------------------------------------------------------")
+    print("-----------------------------------")
     for indice, fila in enumerate(tablero_formateado):
         print(f"{indice+1} |", end="")
         for casilla in fila:
             print(f" {casilla} ", end="|")
         print("")
+        print("-----------------------------------")
 
 # ----------------------------------------------------------------
 
@@ -142,9 +143,9 @@ def formatear_tablero(tablero_de_colores: dict[str, str | None], filas: int = 8,
         fila = []
         for columna in columnas:
             if tablero_de_colores[columna+str(i)] == "N":
-                fila += "⚫"
+                fila += "N"
             elif tablero_de_colores[columna+str(i)] == "B":
-                fila += "⚪"
+                fila += "B"
             else:
                 fila += " "
         output.append(fila)
@@ -152,7 +153,7 @@ def formatear_tablero(tablero_de_colores: dict[str, str | None], filas: int = 8,
 
 # ----------------------------------------------------------------
 
-
+# TODO: Docstring
 def posibles_jugadas(tablero: tuple[(dict[str, str | None], dict[str, list[str | None]])], \
                      jugador_actual: str) -> dict[str, list[int]]:
     """
@@ -195,7 +196,7 @@ def posibles_jugadas(tablero: tuple[(dict[str, str | None], dict[str, list[str |
 
 # ----------------------------------------------------------------
 
-
+# TODO: Docstring
 def validar_linea(tablero: tuple[dict[str, str | None], dict[str, list[str | None]]], \
                   direccion: int, casilla: str, jugador_actual: str) -> bool:
     """ """
@@ -215,6 +216,7 @@ def validar_linea(tablero: tuple[dict[str, str | None], dict[str, list[str | Non
 
 # ----------------------------------------------------------------
 
+# TODO: Docstring
 def realizar_jugada(tablero: tuple[dict[str, str | None], dict[str, list[str | None]]], \
                     casilla: str, direccion: int, jugador_actual: str) -> None:
     """ Realizar jugada recibe una casilla en la que jugar,
@@ -271,7 +273,7 @@ def terminar_partida(tablero: tuple[dict[str, str | None], dict[str, list[str | 
 
 # ----------------------------------------------------------------
 
-
+# TODO: Docstring
 def determinar_ganador(tablero_de_colores: dict[str, str | None],
                        jugador_a: tuple[str, str], jugador_b: tuple[str, str]) -> None:
     cant_blancas = 0
@@ -290,7 +292,7 @@ def determinar_ganador(tablero_de_colores: dict[str, str | None],
 
 # ----------------------------------------------------------------
 
-
+# TODO: Docstring
 def mostrar_ganador(blancas: tuple[str, str], negras: tuple[str, str],
                     cant_blancas: int, cant_negras: int) -> None:
     if cant_blancas > cant_negras:
