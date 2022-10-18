@@ -22,42 +22,36 @@ def clear() -> None:
 # es más eficiente tenerlo guardado.
 
 
-def generar_tablero(filas: int = 8, columnas: str = "ABCDEFGH") -> \
-        tuple[dict[str, str], dict[str, list[str]]]:
+def generar_tablero(filas: int = 8, columnas: str = "ABCDEFGH") \
+                 -> tuple[dict[str, str | None], dict[str, list[str | None]]]:
 
-    posiciones = [f"{letra}{numero}"
-                  for numero in range(1, filas+1)
-                  for letra in columnas]
-    tablero = (obtener_disposicion_inicial(posiciones, filas, columnas),
-               obtener_adyacentes(posiciones))
-    return tablero
+    colores: dict[str, str | None] = {}
+    adyacentes: dict[str, list[str | None]] = {}
 
-# ----------------------------------------------------------------
+    for numero in range(1, filas+1):
+        for letra in columnas:
+            posicion = f"{letra}{numero}"
+            colores[posicion] = None
+            adyacentes[posicion] = obtener_adyacentes(posicion)
 
-
-def obtener_disposicion_inicial(posiciones: list[str], filas: int = 8, columnas: str = "ABCDEFGH") \
-        -> dict[str, str]:
-    """ Crea un tablero de juego """
-
-    disposicion_inicial = dict.fromkeys(posiciones)
     centro_h = (len(columnas)//2)-1
     centro_v = filas//2
+    colores[columnas[centro_h]+str(centro_v)] = \
+        colores[columnas[centro_h+1]+str(centro_v+1)] = "B"
 
-    disposicion_inicial[columnas[centro_h]+str(centro_v)] = \
-        disposicion_inicial[columnas[centro_h+1]+str(centro_v+1)] = "B"
+    colores[columnas[centro_h]+str(centro_v+1)] =\
+        colores[columnas[centro_h+1]+str(centro_v)] = "N"
 
-    disposicion_inicial[columnas[centro_h]+str(centro_v+1)] =\
-        disposicion_inicial[columnas[centro_h+1]+str(centro_v)] = "N"
-
-    return disposicion_inicial
+    tablero = (colores, adyacentes)
+    return tablero
 
 # ----------------------------------------------------------------
 # obtenerAdyacentes(): Toma una posicion y devuelve una lista con sus adyacentes,
 # lo cual utilizaremos para recorrer las 'lineas' y comprobar si una jugada es valida
 
 
-def obtener_adyacentes(posiciones: list[str], filas: int = 8, columnas: str = "ABCDEFGH") -> \
-        dict[str, list[str]]:
+def obtener_adyacentes(posiciones: str, filas: int = 8, columnas: str = "ABCDEFGH") \
+        -> list[str | None]:
     """Crea una lista de posiciones adyacentes a una en específico"""
 
     # el indice de la letra en el string 'alfabeto'
@@ -81,9 +75,9 @@ def obtener_adyacentes(posiciones: list[str], filas: int = 8, columnas: str = "A
 
 # TODO: mostrar correctamente el tablero
 
-def mostrar_tablero(tablero: dict[str, tuple[(str | None, list[str])]], filas: int = 8,
+def mostrar_tablero(tablero_de_colores: dict[str, str | None], filas: int = 8, \
                     columnas: str = "ABCDEFGH") -> None:
-    tablero_formateado = formatear_tablero(tablero, filas, columnas)
+    tablero_formateado = formatear_tablero(tablero_de_colores, filas, columnas)
 
     print("Tablero:")
     print("  | A | B | C | D | E | F | G | H |")
@@ -97,15 +91,15 @@ def mostrar_tablero(tablero: dict[str, tuple[(str | None, list[str])]], filas: i
 # ----------------------------------------------------------------
 
 
-def formatear_tablero(tablero: dict[str, tuple[(str | None, list[str])]], filas: int = 8,
+def formatear_tablero(tablero_de_colores: dict[str, str | None], filas: int = 8, \
                       columnas: str = "ABCDEFGH") -> list[list[str]]:
     output = []
     for i in range(1, filas+1):
         fila = []
         for columna in columnas:
-            if tablero[columna+str(i)][0] == "N":
+            if tablero_de_colores[columna+str(i)] == "N":
                 fila += "N"
-            elif tablero[columna+str(i)][0] == "B":
+            elif tablero_de_colores[columna+str(i)] == "B":
                 fila += "B"
             else:
                 fila += " "
@@ -115,57 +109,39 @@ def formatear_tablero(tablero: dict[str, tuple[(str | None, list[str])]], filas:
 # ----------------------------------------------------------------
 
 
-def recorrer_adyacentes(tablero: dict[str, tuple[(str | None, list[str])]], posicion: int,
-                        casilla: str, jugador_actual: str) -> bool:
-    datos_casilla_actual = tablero[casilla]
-    lista_de_adyacentes = datos_casilla_actual[1]
-    casilla_adyacente = lista_de_adyacentes[posicion]
-    if casilla_adyacente is not None:
-        color_de_adyacente = tablero[casilla_adyacente][0]
-    else:
-        color_de_adyacente = None
-    if color_de_adyacente == jugador_actual:
-        return True
-    elif color_de_adyacente is None:
-        return False
-    return recorrer_adyacentes(tablero, posicion, casilla_adyacente, jugador_actual)
-
-# ----------------------------------------------------------------
-
-
-def posibles_jugadas(tablero: dict[str, tuple[(str | None, list[str])]],
+def posibles_jugadas(tablero: tuple[(dict[str, str | None], dict[str, list[str | None]])], \
                      jugador_actual: str) -> dict[str, list[int]]:
     """
     Devuelve un diccionario con las posibles jugadas.
-    Las llaves son casillas, y su valor es una lista de direcciones
+    Las llaves son casillas, y su valor es una lista de direcciones que modificar
     """
+    colores, adyacentes = tablero
     posibles_casillas: set[str] = set()
     jugadas_validas: dict[str, list[int]] = {}
 
-    for casilla in tablero:
-        if tablero[casilla][0] is not None and tablero[casilla][0] != jugador_actual:
-            for adyacente in tablero[casilla][1]:
-                if adyacente is not None and tablero[adyacente][0] is None:
+    for casilla in colores:
+        if colores[casilla] is not None and colores[casilla] != jugador_actual:
+            for adyacente in adyacentes[casilla]:
+                if adyacente is not None and colores[adyacente] is None:
                     posibles_casillas.add(adyacente)
 
     for posible_casilla in posibles_casillas:
         direcciones: list[int] = []
 
-        lista_de_adyacentes = tablero[posible_casilla][1]
-        color_de_adyacentes = [tablero[adyacente][0] if adyacente is not None
-                               else None for adyacente in lista_de_adyacentes]
-        if (jugador_actual == "B" and "N" not in color_de_adyacentes) or \
-                (jugador_actual == "N" and "B" not in color_de_adyacentes):
-            continue
+        # para que una jugada sea válida, el color de las fichas adyacentes a la jugada
+        # tiene que ser el contrario al del jugador actual
+        color_de_adyacentes = [colores[adyacente] if adyacente is not None
+                               else None for adyacente in adyacentes[posible_casilla]]
 
-        for posicion, adyacente in enumerate(lista_de_adyacentes):
-            if color_de_adyacentes[posicion] is None or color_de_adyacentes[posicion] == jugador_actual:
+        for direccion, adyacente in enumerate(adyacentes[posible_casilla]):
+            color = color_de_adyacentes[direccion]
+            if color is None or color == jugador_actual or adyacente is None:
                 continue
-            valida = recorrer_adyacentes(
-                tablero, posicion, adyacente, jugador_actual)
+            valida = validar_linea(tablero, direccion, adyacente, jugador_actual)
             if valida:
-                direcciones.append(posicion)
+                direcciones.append(direccion)
         if len(direcciones) != 0:
+            # se crea una clave que indica una posible jugada
             jugadas_validas[posible_casilla] = direcciones
 
     return jugadas_validas
@@ -173,8 +149,26 @@ def posibles_jugadas(tablero: dict[str, tuple[(str | None, list[str])]],
 # ----------------------------------------------------------------
 
 
-def realizar_jugada(tablero: dict[str, tuple[(str | None, list[str])]], casilla: str,
-                    direccion: int, jugador_actual: str) -> None:
+def validar_linea(tablero: tuple[dict[str, str | None], dict[str, list[str | None]]], \
+                  direccion: int, casilla: str, jugador_actual: str) -> bool:
+    colores, adyacentes = tablero
+    lista_de_adyacentes = adyacentes[casilla]
+    casilla_adyacente = lista_de_adyacentes[direccion]
+
+    if casilla_adyacente is not None:
+        if colores[casilla_adyacente] == jugador_actual:
+            return True
+        if colores[casilla_adyacente] is None:
+            return False
+    else:
+        return False
+    return validar_linea(tablero, direccion, casilla_adyacente, jugador_actual)
+
+# ----------------------------------------------------------------
+
+# TODO: terminar de refactorizar esta funcion
+def realizar_jugada(tablero: tuple[dict[str, str | None], dict[str, list[str | None]]], \
+                    casilla: str, direccion: int, jugador_actual: str) -> None:
     """
     Realizar jugada recibe una casilla en la que jugar,
     y una dirección, y modifica toda la linea de fichas
@@ -206,10 +200,11 @@ def realizar_jugada(tablero: dict[str, tuple[(str | None, list[str])]], casilla:
 # Jugada podría ser una tupla? (nº jugada, casilla)
 
 
-def terminar_partida(jugador_actual: str, tablero: dict[str, tuple[(str | None, list[str])]],
-                     jugador_a: tuple[str, str], jugador_b: tuple[str, str],
+def terminar_partida(tablero: tuple[dict[str, str | None], dict[str, list[str | None]]],\
+                     jugador_actual: str, jugador_a: tuple[str, str], jugador_b: tuple[str, str],\
                      jugada_incorrecta: tuple[(int, str)] | str) -> None:
     """ Imprime el final de una partida. """
+
 
     fichas = "Blancas" if jugador_actual == "B" else "Negras"
     if jugador_a[1] == jugador_actual:
@@ -218,7 +213,8 @@ def terminar_partida(jugador_actual: str, tablero: dict[str, tuple[(str | None, 
         jugador = f"{jugador_b[0]} de las fichas {fichas},"
 
     if jugada_incorrecta == "Fin":
-        determinar_ganador(tablero, jugador_a, jugador_b)
+        colores, _ = tablero
+        determinar_ganador(colores, jugador_a, jugador_b)
     elif jugada_incorrecta == "NoFin":
         print("La partida está incompleta.")
     else:
@@ -231,12 +227,12 @@ def terminar_partida(jugador_actual: str, tablero: dict[str, tuple[(str | None, 
 # ----------------------------------------------------------------
 
 
-def determinar_ganador(tablero: dict[str, tuple[(str | None, list[str])]],
+def determinar_ganador(tablero_de_colores: dict[str, str | None],
                        jugador_a: tuple[str, str], jugador_b: tuple[str, str]) -> None:
     cant_blancas = 0
     cant_negras = 0
-    for clave in tablero:
-        color = tablero[clave][0]
+    for casilla in tablero_de_colores:
+        color = tablero_de_colores[casilla]
         if color == "B":
             cant_blancas += 1
         if color == "N":
@@ -290,8 +286,9 @@ def leer_partida_de_othello(filas: int = 8, columnas: str = "ABCDEFGH") -> None:
         return
 
     # datos de juego
-    tablero = obtener_disposicion_inicial()
+    tablero = generar_tablero()
     jugador_actual = partida[2]  # inicialmente es el que está en el archivo
+    colores, _ = tablero
 
     # inicia el loop de la partida (recorre las jugadas)
     for jugada in range(3, len(partida)):
@@ -299,9 +296,9 @@ def leer_partida_de_othello(filas: int = 8, columnas: str = "ABCDEFGH") -> None:
         if jugadas_validas == {}:
             if partida[jugada] == "":
                 if partida[jugada-1] == "":
-                    terminar_partida(jugador_actual, tablero,
+                    terminar_partida(tablero, jugador_actual,
                                      jugador_a, jugador_b, "Fin")
-                    mostrar_tablero(tablero, filas, columnas)
+                    mostrar_tablero(colores, filas, columnas)
                     return
                 continue
         if partida[jugada] in jugadas_validas:
@@ -309,9 +306,9 @@ def leer_partida_de_othello(filas: int = 8, columnas: str = "ABCDEFGH") -> None:
                 realizar_jugada(
                     tablero, partida[jugada], posicion, jugador_actual)
         else:
-            terminar_partida(jugador_actual, tablero, jugador_a,
+            terminar_partida(tablero, jugador_actual, jugador_a,
                              jugador_b, (jugada-2, partida[jugada]))
-            mostrar_tablero(tablero, filas, columnas)
+            mostrar_tablero(colores, filas, columnas)
             return
 
         if jugador_actual == "B":
@@ -322,12 +319,12 @@ def leer_partida_de_othello(filas: int = 8, columnas: str = "ABCDEFGH") -> None:
     # ocurre si no se termino la partida
     jugadas_validas = posibles_jugadas(tablero, jugador_actual)
     if jugadas_validas != {}:
-        terminar_partida(jugador_actual, tablero,
+        terminar_partida(tablero, jugador_actual,
                          jugador_a, jugador_b, "NoFin")
-        mostrar_tablero(tablero, filas, columnas)
+        mostrar_tablero(colores, filas, columnas)
     else:
-        terminar_partida(jugador_actual, tablero, jugador_a, jugador_b, "Fin")
-        mostrar_tablero(tablero, filas, columnas)
+        terminar_partida(tablero, jugador_actual, jugador_a, jugador_b, "Fin")
+        mostrar_tablero(colores, filas, columnas)
 
 
 if __name__ == "__main__":
