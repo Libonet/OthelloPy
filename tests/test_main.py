@@ -1,5 +1,5 @@
 """ Este módulo está destinado a los tests de funciones de main.py """
-from src.main import obtener_adyacentes, obtener_disposicion_inicial, posibles_jugadas, validar_linea
+from src.main import obtener_adyacentes, generar_tablero, posibles_jugadas, validar_linea
 
 
 class TestMainFunctions:
@@ -89,13 +89,13 @@ class TestMainFunctions:
     def test_crear_tablero(self):
         """crear_tablero devuelve un diccionario con todas las casillas como llave,
         guardando en cada una una tupla de su color y una lista de casillas adyacentes"""
-        assert obtener_disposicion_inicial(
+        assert generar_tablero(
             8, "ABCDEFGH") == self.tableroInicial
         self.tableroInicial["D3"] = ("N", obtener_adyacentes("D3"))
-        assert obtener_disposicion_inicial(
+        assert generar_tablero(
             8, "ABCDEFGH") != self.tableroInicial
 
-        assert obtener_disposicion_inicial(3, "ABC") == {
+        assert generar_tablero(3, "ABC") == {
             "A1": ("B", obtener_adyacentes("A1", 3, "ABC")),
             "B1": ("N", obtener_adyacentes("B1", 3, "ABC")),
             "C1": (None, obtener_adyacentes("C1", 3, "ABC")),

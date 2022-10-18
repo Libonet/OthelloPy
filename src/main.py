@@ -9,21 +9,28 @@ import os
 
 
 def clear() -> None:
-    """Limpia la terminal"""
+    """ Limpia la terminal """
 
     print("\033[H\033[J", end="")
 
 # ----------------------------------------------------------------
 
-# Necesitamos una forma de representar si las distintas casillas están ocupadas,
-# indicando de qué color. Además necesitamos las casillas adyacentes. Es necesario
-# guardarlo?
-# Tenemos en todo momento que calcular los adyacentes de distintas fichas. Cláramente
-# es más eficiente tenerlo guardado.
-
 
 def generar_tablero(filas: int = 8, columnas: str = "ABCDEFGH") \
                  -> tuple[dict[str, str | None], dict[str, list[str | None]]]:
+    """ Crea un tablero de juego
+
+    Args:
+      filas:
+        Numero de filas. Por defecto el tablero tiene 8 filas,
+        pero quedamos abiertos a una mayor/menor cantidad
+      columnas:
+        String de los nombres de columnas. Por defecto el tablero tiene 8 columnas ('ABCDEFGH'),
+        pero quedamos abiertos a una mayor/menor cantidad
+    Returns:
+      tablero:
+        Una tupla de 2 diccionarios que contienen el color de cada posicion
+        y una lista de posiciones adyacentes respectivamente """
 
     colores: dict[str, str | None] = {}
     adyacentes: dict[str, list[str | None]] = {}
@@ -50,19 +57,32 @@ def generar_tablero(filas: int = 8, columnas: str = "ABCDEFGH") \
 # lo cual utilizaremos para recorrer las 'lineas' y comprobar si una jugada es valida
 
 
-def obtener_adyacentes(posiciones: str, filas: int = 8, columnas: str = "ABCDEFGH") \
+def obtener_adyacentes(posicion: str, filas: int = 8, columnas: str = "ABCDEFGH") \
         -> list[str | None]:
-    """Crea una lista de posiciones adyacentes a una en específico"""
+    """ Crea una lista de posiciones adyacentes a una en específico
+
+    Args:
+        posicion:
+            Una casilla del tablero
+        filas:
+            Numero de filas. Por defecto el tablero tiene 8 filas
+        columnas:
+            String de los nombres de columnas. Por defecto el tablero tiene 8 columnas ('ABCDEFGH')
+    Returns:
+        adyacentes:
+            Una lista con las casillas adyacentes a la ingresada.
+            Los indices de la lista determinan una direccion en específico:
+            0:NorOeste, 1:Norte, 2:NorEste, 3:Oeste, 4:Este, 5:SurOeste, 6:Sur, 7:SurEste """
 
     # el indice de la letra en el string 'alfabeto'
-    indice_de_letra = (ord(posiciones[0])-65)
-    # el numero de la posicion transformado a un
-    num_de_posicion = int(posiciones[1])
-    adyacentes = []
+    indice_de_letra = (ord(posicion[0])-65)
+    # el numero de la posicion transformado a un int
+    num_de_posicion = int(posicion[1])
+    adyacentes: list[str | None] = []
     for numero in range(num_de_posicion-1, num_de_posicion+2):
         for letra in range(indice_de_letra-1, indice_de_letra+2):
             if letra >= 0 and letra < len(columnas) and numero > 0 and numero <= filas:
-                if columnas[letra]+str(numero) == posiciones:
+                if columnas[letra]+str(numero) == posicion:
                     continue
                 adyacentes.append(f"{columnas[letra]}{numero}")
             else:
@@ -77,6 +97,17 @@ def obtener_adyacentes(posiciones: str, filas: int = 8, columnas: str = "ABCDEFG
 
 def mostrar_tablero(tablero_de_colores: dict[str, str | None], filas: int = 8, \
                     columnas: str = "ABCDEFGH") -> None:
+    """ Imprime el tablero en consola
+
+    Args:
+        tablero_de_colores:
+            Diccionario con los colores de cada casilla
+        filas:
+            Numero de filas. Por defecto el tablero tiene 8 filas
+        columnas:
+            String de los nombres de columnas. Por defecto el tablero tiene 8 columnas ('ABCDEFGH')
+    Returns: None """
+
     tablero_formateado = formatear_tablero(tablero_de_colores, filas, columnas)
 
     print("Tablero:")
@@ -93,14 +124,27 @@ def mostrar_tablero(tablero_de_colores: dict[str, str | None], filas: int = 8, \
 
 def formatear_tablero(tablero_de_colores: dict[str, str | None], filas: int = 8, \
                       columnas: str = "ABCDEFGH") -> list[list[str]]:
+    """ Reemplaza los valores que representan los colores para mostrar en consola
+
+    Args:
+        tablero_de_colores:
+            Diccionario con los colores de cada casilla
+        filas:
+            Numero de filas. Por defecto el tablero tiene 8 filas
+        columnas:
+            String de los nombres de columnas. Por defecto el tablero tiene 8 columnas ('ABCDEFGH')
+    Returns:
+        output:
+            Una lista cuyos elementos son strings representando los colores de cada fila """
+
     output = []
     for i in range(1, filas+1):
         fila = []
         for columna in columnas:
             if tablero_de_colores[columna+str(i)] == "N":
-                fila += "N"
+                fila += "⚫"
             elif tablero_de_colores[columna+str(i)] == "B":
-                fila += "B"
+                fila += "⚪"
             else:
                 fila += " "
         output.append(fila)
@@ -114,6 +158,9 @@ def posibles_jugadas(tablero: tuple[(dict[str, str | None], dict[str, list[str |
     """
     Devuelve un diccionario con las posibles jugadas.
     Las llaves son casillas, y su valor es una lista de direcciones que modificar
+
+    Args:
+
     """
     colores, adyacentes = tablero
     posibles_casillas: set[str] = set()
@@ -151,6 +198,8 @@ def posibles_jugadas(tablero: tuple[(dict[str, str | None], dict[str, list[str |
 
 def validar_linea(tablero: tuple[dict[str, str | None], dict[str, list[str | None]]], \
                   direccion: int, casilla: str, jugador_actual: str) -> bool:
+    """ """
+
     colores, adyacentes = tablero
     lista_de_adyacentes = adyacentes[casilla]
     casilla_adyacente = lista_de_adyacentes[direccion]
@@ -166,28 +215,24 @@ def validar_linea(tablero: tuple[dict[str, str | None], dict[str, list[str | Non
 
 # ----------------------------------------------------------------
 
-# TODO: terminar de refactorizar esta funcion
 def realizar_jugada(tablero: tuple[dict[str, str | None], dict[str, list[str | None]]], \
                     casilla: str, direccion: int, jugador_actual: str) -> None:
-    """
-    Realizar jugada recibe una casilla en la que jugar,
-    y una dirección, y modifica toda la linea de fichas
-    al color del jugador actual
+    """ Realizar jugada recibe una casilla en la que jugar,
+        y una dirección, y modifica toda la linea de fichas
+        al color del jugador actual
 
     """
-    casilla_actual = tablero.get(casilla, (None, []))
-    lista_de_adyacentes = casilla_actual[1]
+    colores, adyacentes = tablero
+    lista_de_adyacentes = adyacentes[casilla]
     casilla_adyacente = lista_de_adyacentes[direccion]
+
+    colores[casilla] = jugador_actual
     if casilla_adyacente is not None:
-        # este es el adyacente a la posicion que estamos checkeando actualmente
-        color_de_adyacente = tablero[casilla_adyacente][0]
-    else:
-        color_de_adyacente = jugador_actual
-    tablero[casilla] = (jugador_actual, lista_de_adyacentes)
-    if color_de_adyacente == jugador_actual:
-        return
-    elif color_de_adyacente is not None:
-        realizar_jugada(tablero, casilla_adyacente, direccion, jugador_actual)
+        if colores[casilla_adyacente] == jugador_actual:
+            return
+        elif colores[casilla_adyacente] is not None:
+            realizar_jugada(tablero, casilla_adyacente, direccion, jugador_actual)
+
 
 # ----------------------------------------------------------------
 
@@ -263,9 +308,13 @@ def leer_partida_de_othello(filas: int = 8, columnas: str = "ABCDEFGH") -> None:
     """Lee una partida de Othello guardada en un archivo .txt"""
 
     print("// Aclaracion: el archivo de juego debe ser ingresado en la carpeta 'partidas'")
-    path = input("Ingrese el nombre del archivo de juego (sin el .txt): ")
+    print("// Presione enter para probar una partida de ejemplo")
+    ubicacion = input("Ingrese el nombre del archivo de juego (sin el .txt): ")
     dirname = os.path.dirname(__file__)
-    filename = os.path.join(dirname, f"partidas/{path}.txt")
+    if ubicacion != "":
+        filename = os.path.join(dirname, f"partidas/{ubicacion}.txt")
+    else:
+        filename = os.path.join(dirname, "partidas/ejemplo.txt")
 
     try:
         with open(filename, "r", encoding="utf8") as file:
@@ -316,8 +365,8 @@ def leer_partida_de_othello(filas: int = 8, columnas: str = "ABCDEFGH") -> None:
         elif jugador_actual == "N":
             jugador_actual = "B"
 
-    # ocurre si no se termino la partida
     jugadas_validas = posibles_jugadas(tablero, jugador_actual)
+    # ocurre si no se termino la partida
     if jugadas_validas != {}:
         terminar_partida(tablero, jugador_actual,
                          jugador_a, jugador_b, "NoFin")
